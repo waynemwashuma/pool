@@ -1,5 +1,3 @@
-let r = new Date().valueOf();
-console.log(r);
 let c = document.getElementById('D');
 c.width = 600;
 c.height = 400;
@@ -19,7 +17,6 @@ addEventListener('dragenter', () => {
             e.x = mouse.x;
             e.y = mouse.y;
         }
-        console.log('dt')
     }
 })
 
@@ -147,8 +144,6 @@ function Stick(x, y) {
         obj.vel.y += this.vel.y;
         obj.vel.x += this.vel.x;
         this.shooting = true;
-        console.log(obj);
-        
         obj.updateVEL();
     }
     this.draw = async function (n) {
@@ -232,7 +227,6 @@ let holes = [
         balls.push(a);
     }
 })(2);
-console.log(holes);
 function draw() {
     holes.forEach(hole => {
         hole.draw(ct)
@@ -257,7 +251,6 @@ function draw() {
         })
     })();
 };
-console.log(balls);
 
 let stick = new Stick(balls[0].x, balls[1].y);
 (async function loop() {
@@ -276,7 +269,6 @@ let stick = new Stick(balls[0].x, balls[1].y);
     draw();
     window.requestAnimationFrame(loop);
 })();
-console.log(balls);
 (function () {
     let e = document.querySelector("button");
     e.innerHTML = "fullscreen" || undefined;
@@ -296,8 +288,6 @@ console.log(balls);
                 break;
             case 's':
                 stick.deg -= 0.1;
-                console.log('see');
-                
                 break;
 
         }
@@ -317,7 +307,6 @@ console.log(balls);
         }
     })
 })();
-console.log(new Date().valueOf() - r);
 let initialBalls = 9;
 setInterval(()=>{
     if (balls.length == 1) {
