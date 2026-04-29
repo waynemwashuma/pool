@@ -244,15 +244,18 @@ let holes = [
 (function (n) {
     balls = [];
     let r = ballradius,
-        l = 2 * r * Math.sin(30),
-        op = [460, 200];
+        rowOffset = Math.sqrt(3) * r,
+        rackOrigin = [420, 200],
+        rows = 5;
     balls.push(new ball(100, 200, 'cueball', 'beige'))
-    let pos = [[op[0], op[1]],
-    [op[0] + l, op[1] + r],
-    [op[0] + l, op[1] - r],[op[0]+2*l,op[1]]];
-    for (let i = 0; i < pos.length; i++) {
-        let a = new ball(pos[i][0], pos[i][1], 'other');
-        balls.push(a);
+    for (let row = 0; row < rows; row++) {
+        let x = rackOrigin[0] + row * rowOffset;
+        let startY = rackOrigin[1] - row * r;
+        for (let col = 0; col <= row; col++) {
+            let y = startY + col * 2 * r;
+            let a = new ball(x, y, 'other');
+            balls.push(a);
+        }
     }
 })(2);
 function draw() {
