@@ -40,22 +40,50 @@ function getDist(x1, y1, x2, y2) {
     return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
 }
 
-async function collidesWith(bal, obj) {
-    obj.forEach(e => {
-        if (e !== bal) {
-            if (circ(e, bal,2* bal.r)) {
-                let uv = new Vector(e.x - bal.x, e.y - bal.y);
-                let vv = new Vector(bal.vel.x,bal.vel.y).mag();
-                un = uv.normalise();
-                e.vel.x = un.x *vv;
-                e.vel.y = un.y *vv;
-            }
-        }
-        obj.forEach(f=>{
-            f.updateVEL()
-        })
+function collidesWith(balls) {
+    for (let i = 0; i < balls.length; i++) {
+        for (let j = i + 1; j < balls.length; j++) {
+            let a = balls[i];
+            let b = balls[j];
+            let dx = b.x - a.x;
+            let dy = b.y - a.y;
+            let distance = Math.sqrt(dx * dx + dy * dy);
+            let minDistance = a.r + b.r;
 
-    })
+            if (distance === 0 || distance > minDistance) {
+                continue;
+            }
+
+            let normalX = dx / distance;
+            let normalY = dy / distance;
+            let tangentX = -normalY;
+            let tangentY = normalX;
+
+            let relativeVelocityX = b.vel.x - a.vel.x;
+            let relativeVelocityY = b.vel.y - a.vel.y;
+            let speedAlongNormal = relativeVelocityX * normalX + relativeVelocityY * normalY;
+
+            if (speedAlongNormal < 0) {
+                let aNormal = a.vel.x * normalX + a.vel.y * normalY;
+                let bNormal = b.vel.x * normalX + b.vel.y * normalY;
+                let aTangent = a.vel.x * tangentX + a.vel.y * tangentY;
+                let bTangent = b.vel.x * tangentX + b.vel.y * tangentY;
+
+                a.vel.x = bNormal * normalX + aTangent * tangentX;
+                a.vel.y = bNormal * normalY + aTangent * tangentY;
+                b.vel.x = aNormal * normalX + bTangent * tangentX;
+                b.vel.y = aNormal * normalY + bTangent * tangentY;
+            }
+
+            let overlap = minDistance - distance;
+            let separation = overlap / 2;
+
+            a.x -= normalX * separation;
+            a.y -= normalY * separation;
+            b.x += normalX * separation;
+            b.y += normalY * separation;
+        }
+    }
 }
 let ct = c.getContext('2d');
 
@@ -254,8 +282,8 @@ function draw() {
 
 let stick = new Stick(balls[0].x, balls[1].y);
 (async function loop() {
+    collidesWith(balls);
     balls.forEach(e => {
-        collidesWith(e, balls);
         e.move();
         e.collider();
         friction(e)
