@@ -229,6 +229,14 @@ function Hole(x, y) {
         }
     }
 }
+function shootCueBall() {
+    balls.forEach(ball => {
+        if (ball.name == 'cueball') {
+            stick.shoot(ball);
+            stick.shooting = true;
+        }
+    })
+}
 let balls;
 let holes = [
     new Hole(0, 0),
@@ -314,26 +322,17 @@ let stick = new Stick(balls[0].x, balls[1].y);
     })
     addEventListener('keydown', e => {
         switch (e.key) {
-            case 'w':
+            case 'ArrowUp':
+            case 'ArrowLeft':
                 stick.deg += 0.1;
                 break;
-            case 's':
+            case 'ArrowDown':
+            case 'ArrowRight':
                 stick.deg -= 0.1;
                 break;
-
-        }
-    })
-    addEventListener('keypress', e => {
-        switch (e.key) {
-            case 'm':
-                balls.forEach(e => {
-                    if (e.name == 'cueball') {
-                        stick.shoot(e);
-                        stick.shooting = true;
-                    }
-
-                })
-
+            case ' ':
+                e.preventDefault();
+                shootCueBall();
                 break;
         }
     })
