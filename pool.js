@@ -1,6 +1,14 @@
 let c = document.getElementById('D');
 let orientationPrompt = document.getElementById('orientationPrompt');
+let powerFill = document.getElementById('powerFill');
+let powerStatus = document.getElementById('powerStatus');
 let tablePadding = 20;
+let minShotPower = 0;
+let maxShotPower = 50;
+let shotPower = 10;
+let shotPowerStep = 1;
+let momentumThreshold = 0.2;
+let stick;
 let mouse = {
     x: null,
     y: null
@@ -54,8 +62,8 @@ function updateOrientationPrompt() {
 
 function friction(obj) {
     let co_e = 0.02;
-    if (obj.vel.x > 0) {
-        let v = new Vector(obj.vel.x, obj.vel.y);
+    let v = new Vector(obj.vel.x, obj.vel.y);
+    if (v.mag() > 0) {
         if (v.mag() <= co_e) {
             obj.vel.x = 0;
             obj.vel.y = 0;
@@ -149,6 +157,44 @@ function Vector(x, y) {
         return new Vector(this.x * n, this.y * n)
     }
 }
+
+function clamp(value, min, max) {
+    return Math.min(Math.max(value, min), max);
+}
+
+function getCurrentShotPower() {
+    return clamp(shotPower, minShotPower, maxShotPower);
+}
+
+function getShotPowerPercentage() {
+    let powerRange = maxShotPower - minShotPower;
+    if (powerRange === 0) {
+        return 100;
+    }
+    return Math.round(((getCurrentShotPower() - minShotPower) / powerRange) * 100);
+}
+
+function getTotalMomentum() {
+    return balls.reduce((sum, ball) => {
+        return sum + Math.sqrt(ball.vel.x * ball.vel.x + ball.vel.y * ball.vel.y);
+    }, 0);
+}
+
+function canShoot() {
+    return getTotalMomentum() <= momentumThreshold;
+}
+
+function updatePowerBar() {
+    if (!powerFill || !powerStatus) {
+        return;
+    }
+    let percentage = getShotPowerPercentage();
+    powerFill.style.width = percentage + '%';
+    powerStatus.textContent = canShoot()
+        ? 'Power ' + percentage + '%'
+        : 'Table moving...';
+}
+
 let ballradius = 15;
 function ball(x, y, name, color = 'red') {
     this.strokecolor = 'green';
@@ -160,7 +206,7 @@ function ball(x, y, name, color = 'red') {
         x: 0,
         y: 0,
     }
-    this.updateVEL=async()=>{
+    this.updateVEL = async () => {
         this.vel.x = this.vel.x;
         this.vel.y = this.vel.y;
     }
@@ -196,11 +242,14 @@ function Stick(x, y) {
     this.y = y;
     this.deg = Math.PI;
     this.vel = {
-        x: 10,
-        y: 2
+        x: 0,
+        y: 0
     }
     this.shooting = false;
     this.shoot = async function (obj) {
+        if (!canShoot()) {
+            return;
+        }
         obj.vel.y += this.vel.y;
         obj.vel.x += this.vel.x;
         this.shooting = true;
@@ -211,21 +260,23 @@ function Stick(x, y) {
         n.beginPath();
         n.translate(this.x, this.y);
         n.rotate(this.deg);
-          n.fillStyle = 'brown';
+        n.fillStyle = 'brown';
         n.fillRect(0, 0, this.l, this.w);
-      
+
         n.closePath();
         n.restore();
     };
     this.rotation = function (obj) {
-        let v = new Vector(Math.cos(this.deg), Math.cos(this.deg - Math.PI / 2)).mult(30);
+        let aim = new Vector(Math.cos(this.deg), Math.cos(this.deg - Math.PI / 2));
+        let v = aim.mult(30);
+        let shotForce = getCurrentShotPower();
         this.rad = this.deg * 180 / Math.PI;
         this.x = obj.x;
         this.y = obj.y;
         this.x += v.x;
         this.y += v.y;
-        this.vel.x = -v.mult(1 / 3).x;
-        this.vel.y = -v.mult(1 / 3).y;
+        this.vel.x = -aim.x * shotForce;
+        this.vel.y = -aim.y * shotForce;
     }
     this.update = function (c, obj) {
         this.draw(c);
@@ -246,8 +297,8 @@ function Hole(x, y) {
     this.collider = (obj, arr) => {
         if (circ(this, obj, this.r)) {
             if (obj.name == 'cueball') {
-                obj.x = randomIntFromRange(40,600);
-                obj.y = randomIntFromRange(40,360);
+                obj.x = randomIntFromRange(40, 600);
+                obj.y = randomIntFromRange(40, 360);
                 obj.vel.x = 0;
                 obj.vel.y = 0;
                 return
@@ -262,6 +313,9 @@ function Hole(x, y) {
     }
 }
 function shootCueBall() {
+    if (!canShoot()) {
+        return;
+    }
     balls.forEach(ball => {
         if (ball.name == 'cueball') {
             stick.shoot(ball);
@@ -295,6 +349,7 @@ let holes = [];
     resizeTable();
     rackBalls();
     updateOrientationPrompt();
+    updatePowerBar();
 })(2);
 function draw() {
     holes.forEach(hole => {
@@ -306,22 +361,20 @@ function draw() {
     (function () {
         balls.forEach(e => {
             if (e.name == 'cueball') {
-                if (stick.shooting) {
-                    balls.forEach(r => {
-                        if (r.vel.x > 0 && r.vel.y > 0) {
-                            return
-                        }
-                    }
-                );
+                if (stick.shooting && canShoot()) {
                     stick.shooting = false;
                 }
-                stick.update(ct, e);
+                if (!stick.shooting) {
+                    stick.update(ct, e);
+                } else {
+                    stick.rotation(e);
+                }
             }
         })
     })();
 };
 
-let stick = new Stick(balls[0].x, balls[1].y);
+stick = new Stick(balls[0].x, balls[1].y);
 (async function loop() {
     collidesWith(balls);
     balls.forEach(e => {
@@ -336,6 +389,7 @@ let stick = new Stick(balls[0].x, balls[1].y);
     })
     ct.clearRect(0, 0, c.width, c.height);
     draw();
+    updatePowerBar();
     window.requestAnimationFrame(loop);
 })();
 (function () {
@@ -354,13 +408,19 @@ let stick = new Stick(balls[0].x, balls[1].y);
     })
     addEventListener('keydown', e => {
         switch (e.key) {
-            case 'ArrowUp':
             case 'ArrowLeft':
                 stick.deg += 0.1;
                 break;
-            case 'ArrowDown':
             case 'ArrowRight':
                 stick.deg -= 0.1;
+                break;
+            case 'ArrowUp':
+                shotPower = clamp(shotPower + shotPowerStep, minShotPower, maxShotPower);
+                updatePowerBar();
+                break;
+            case 'ArrowDown':
+                shotPower = clamp(shotPower - shotPowerStep, minShotPower, maxShotPower);
+                updatePowerBar();
                 break;
             case ' ':
                 e.preventDefault();
@@ -372,28 +432,30 @@ let stick = new Stick(balls[0].x, balls[1].y);
 addEventListener('resize', () => {
     resizeTable();
     updateOrientationPrompt();
+    updatePowerBar();
 });
 
 addEventListener('orientationchange', () => {
     resizeTable();
     updateOrientationPrompt();
+    updatePowerBar();
 });
 
 let initialBalls = 15;
-setInterval(()=>{
+setInterval(() => {
     if (balls.length == 1) {
-            balls = [balls[0]];
-            balls[0].x = c.width * 0.2;
-            balls[0].y = c.height / 2;
-            balls[0].vel.x = 0;
-            balls[0].vel.y = 0;
-            for (let i = 0; i < initialBalls; i++) {
-                let row = Math.floor((Math.sqrt(8 * i + 1) - 1) / 2);
-                let rowStart = row * (row + 1) / 2;
-                let col = i - rowStart;
-                let x = c.width * 0.62 + row * Math.sqrt(3) * ballradius;
-                let y = c.height / 2 - row * ballradius + col * 2 * ballradius;
-                balls.push(new ball(x, y, 'other'))
-            }
+        balls = [balls[0]];
+        balls[0].x = c.width * 0.2;
+        balls[0].y = c.height / 2;
+        balls[0].vel.x = 0;
+        balls[0].vel.y = 0;
+        for (let i = 0; i < initialBalls; i++) {
+            let row = Math.floor((Math.sqrt(8 * i + 1) - 1) / 2);
+            let rowStart = row * (row + 1) / 2;
+            let col = i - rowStart;
+            let x = c.width * 0.62 + row * Math.sqrt(3) * ballradius;
+            let y = c.height / 2 - row * ballradius + col * 2 * ballradius;
+            balls.push(new ball(x, y, 'other'))
+        }
     }
-},1000)
+}, 1000)

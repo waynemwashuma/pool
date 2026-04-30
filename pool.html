@@ -85,6 +85,41 @@
             color: rgba(244, 235, 215, 0.86);
         }
 
+        .power-meter {
+            margin-top: 0.9rem;
+        }
+
+        .power-label {
+            margin: 0 0 0.45rem;
+            font-size: 0.76rem;
+            letter-spacing: 0.14rem;
+            text-transform: uppercase;
+            color: rgba(244, 235, 215, 0.7);
+        }
+
+        .power-track {
+            width: min(220px, 42vw);
+            height: 0.75rem;
+            border-radius: 999px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+        }
+
+        .power-fill {
+            width: 50%;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #75c67d, #e3c16c 55%, #db7a50);
+            transition: width 120ms ease;
+        }
+
+        .power-status {
+            margin: 0.45rem 0 0;
+            font-size: 0.82rem;
+            color: rgba(244, 235, 215, 0.72);
+        }
+
         .fullscreen-btn {
             position: fixed;
             right: max(18px, env(safe-area-inset-right));
@@ -155,7 +190,14 @@
     </div>
     <section class="hud" aria-label="Game controls">
         <p class="hud-title">Controls</p>
-        <p class="hud-copy">Up/Down arrows aim. Space or tap shoots.</p>
+        <p class="hud-copy">Up/Down aim. Left/Right set power. Space or tap shoots.</p>
+        <div class="power-meter" aria-label="Shot power">
+            <p class="power-label">Shot Power</p>
+            <div class="power-track">
+                <div id="powerFill" class="power-fill"></div>
+            </div>
+            <p id="powerStatus" class="power-status">Power 50%</p>
+        </div>
     </section>
     <button id="full" class="fullscreen-btn" type="button">Fullscreen</button>
     <section id="orientationPrompt" class="overlay" aria-live="polite">
