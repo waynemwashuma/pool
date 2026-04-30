@@ -3,13 +3,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title style="color:greenyellow;">POOL GAME</title>
+    <title>Pool Game</title>
+    <style>
+        :root {
+            --panel: rgba(7, 35, 28, 0.76);
+            --text: #f8f3df;
+            --accent: #e7b85b;
+            --accent-strong: #f0d87b;
+            --line: rgba(255, 255, 255, 0.12);
+            --shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Georgia, "Times New Roman", serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(231, 184, 91, 0.22), transparent 34%),
+                radial-gradient(circle at bottom right, rgba(22, 120, 90, 0.32), transparent 30%),
+                linear-gradient(135deg, #03110d 0%, #0a2b22 52%, #041713 100%);
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+        }
+
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            inset: auto;
+            border-radius: 50%;
+            filter: blur(2px);
+            opacity: 0.35;
+            pointer-events: none;
+        }
+
+        body::before {
+            width: 22rem;
+            height: 22rem;
+            top: -6rem;
+            right: -5rem;
+            background: radial-gradient(circle, rgba(240, 216, 123, 0.4), transparent 68%);
+        }
+
+        body::after {
+            width: 18rem;
+            height: 18rem;
+            left: -4rem;
+            bottom: -6rem;
+            background: radial-gradient(circle, rgba(18, 110, 83, 0.55), transparent 68%);
+        }
+
+        .hero {
+            width: min(960px, calc(100vw - 2rem));
+            padding: clamp(2rem, 5vw, 4rem);
+            border: 1px solid var(--line);
+            border-radius: 32px;
+            background: var(--panel);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(18px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            inset: 1rem;
+            border: 1px solid rgba(231, 184, 91, 0.16);
+            border-radius: 24px;
+            pointer-events: none;
+        }
+
+        h1 {
+            margin: 0;
+            max-width: 10ch;
+            font-size: clamp(3rem, 8vw, 6rem);
+            line-height: 0.92;
+            font-weight: 600;
+        }
+
+        .actions {
+            margin-top: 2.2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .start-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 13rem;
+            padding: 1rem 1.6rem;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--accent-strong), var(--accent));
+            color: #112018;
+            text-decoration: none;
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: 0.04rem;
+            box-shadow: 0 18px 40px rgba(231, 184, 91, 0.26);
+            transition: transform 160ms ease, box-shadow 160ms ease;
+        }
+
+        .start-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 24px 52px rgba(231, 184, 91, 0.32);
+        }
+
+        .table-preview {
+            margin-top: 2.5rem;
+            height: 11rem;
+            border-radius: 26px;
+            position: relative;
+            background:
+                radial-gradient(circle at center, rgba(255, 255, 255, 0.08), transparent 38%),
+                linear-gradient(135deg, #146a4f, #0d4f3f 56%, #0f3d31);
+            border: 12px solid #63381d;
+            box-shadow: inset 0 0 0 2px rgba(255, 248, 213, 0.18);
+        }
+
+        .balls {
+            position: absolute;
+            inset: 0;
+        }
+
+        .ball {
+            position: absolute;
+            width: 1.05rem;
+            height: 1.05rem;
+            border-radius: 50%;
+            box-shadow: inset -0.2rem -0.25rem 0 rgba(0, 0, 0, 0.18);
+            transform: translate(-50%, -50%);
+        }
+
+        .ball.cue {
+            left: 18%;
+            top: 50%;
+            background: #f3ead1;
+        }
+
+        .ball.one { left: 68%; top: 50%; background: #c73c2a; }
+        .ball.two { left: 70.3%; top: 45.5%; background: #e4c156; }
+        .ball.three { left: 70.3%; top: 54.5%; background: #1b5ccf; }
+        .ball.four { left: 72.6%; top: 41%; background: #eb6a34; }
+        .ball.five { left: 72.6%; top: 50%; background: #222; }
+        .ball.six { left: 72.6%; top: 59%; background: #d5d5d5; }
+        .ball.seven { left: 74.9%; top: 36.5%; background: #6b2fa3; }
+        .ball.eight { left: 74.9%; top: 45.5%; background: #d64141; }
+        .ball.nine { left: 74.9%; top: 54.5%; background: #2f8f63; }
+        .ball.ten { left: 74.9%; top: 63.5%; background: #d59b2d; }
+
+        @media (max-width: 700px) {
+            .hero {
+                padding: 1.5rem;
+                border-radius: 24px;
+            }
+
+            .table-preview {
+                height: 8.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div style="margin-left: auto;margin-right: auto;">
-        <h1 style="padding: 0%;">WELCOME TO THE POOL GAME</h1>
-        <h4 style="padding: 0%;">HOPE YOU ENJOY</h4>
-    </div>
-    <div><a href="./pool.html" style="font-style: oblique;font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; border-left-style: inset; font-size: 30px;  padding: 30px 50px;background-color: greenyellow;color:rgb(0, 3, 100);box-shadow: rgb(0, 3, 100);outline-offset: 3px;margin:auto">start game</a></div>
+    <main class="hero">
+        <h1>Pool</h1>
+        <div class="actions">
+            <a class="start-link" href="./pool.html">Start Game</a>
+        </div>
+        <div class="table-preview" aria-hidden="true">
+            <div class="balls">
+                <span class="ball cue"></span>
+                <span class="ball one"></span>
+                <span class="ball two"></span>
+                <span class="ball three"></span>
+                <span class="ball four"></span>
+                <span class="ball five"></span>
+                <span class="ball six"></span>
+                <span class="ball seven"></span>
+                <span class="ball eight"></span>
+                <span class="ball nine"></span>
+                <span class="ball ten"></span>
+            </div>
+        </div>
+    </main>
 </body>
 </html>

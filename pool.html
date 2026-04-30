@@ -1,23 +1,169 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Pool Table</title>
     <style>
-        canvas {
-            background-color: burlywood;
+        :root {
+            --felt: #0f5a44;
+            --felt-dark: #0a4231;
+            --rail: #6c3d21;
+            --rail-dark: #402312;
+            --line: rgba(255, 255, 255, 0.14);
+            --panel: rgba(6, 16, 13, 0.56);
+            --text: #f4ebd7;
+            --accent: #e3c16c;
         }
-        .full{
-            background-color:lightseagreen;
-            color: darksalmon;
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background:
+                radial-gradient(circle at top, rgba(30, 112, 86, 0.4), transparent 40%),
+                linear-gradient(180deg, #07130f 0%, #030805 100%);
+            font-family: Georgia, "Times New Roman", serif;
+            color: var(--text);
+        }
+
+        body {
+            position: relative;
+        }
+
+        .table-shell {
+            position: fixed;
+            inset: 0;
+            padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+            background:
+                radial-gradient(circle at center, rgba(255, 255, 255, 0.05), transparent 36%),
+                linear-gradient(145deg, var(--rail), var(--rail-dark));
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 26px;
+            background:
+                radial-gradient(circle at center, rgba(255, 255, 255, 0.05), transparent 42%),
+                linear-gradient(135deg, var(--felt), var(--felt-dark));
+            box-shadow:
+                inset 0 0 0 2px rgba(255, 255, 255, 0.05),
+                0 24px 60px rgba(0, 0, 0, 0.45);
+        }
+
+        .hud {
+            position: fixed;
+            top: max(18px, env(safe-area-inset-top));
+            left: max(18px, env(safe-area-inset-left));
+            z-index: 2;
+            padding: 0.9rem 1rem;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            background: var(--panel);
+            backdrop-filter: blur(12px);
+        }
+
+        .hud-title {
+            margin: 0;
+            font-size: 0.78rem;
+            letter-spacing: 0.2rem;
+            text-transform: uppercase;
+            color: var(--accent);
+        }
+
+        .hud-copy {
+            margin: 0.35rem 0 0;
+            font-size: 0.92rem;
+            color: rgba(244, 235, 215, 0.86);
+        }
+
+        .fullscreen-btn {
+            position: fixed;
+            right: max(18px, env(safe-area-inset-right));
+            top: max(18px, env(safe-area-inset-top));
+            z-index: 2;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 999px;
+            padding: 0.85rem 1.1rem;
+            background: rgba(8, 18, 15, 0.68);
+            color: var(--text);
+            font: inherit;
+            cursor: pointer;
+            backdrop-filter: blur(12px);
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 3;
+            display: none;
+            place-items: center;
+            padding: 1.5rem;
+            background: rgba(2, 6, 5, 0.84);
+            backdrop-filter: blur(10px);
+        }
+
+        .overlay.active {
+            display: grid;
+        }
+
+        .overlay-card {
+            width: min(28rem, 100%);
+            padding: 1.7rem;
+            border-radius: 24px;
+            background: rgba(13, 35, 28, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+            text-align: center;
+        }
+
+        .overlay-card h1 {
+            margin: 0 0 0.7rem;
+            font-size: clamp(1.7rem, 6vw, 2.5rem);
+        }
+
+        .overlay-card p {
+            margin: 0;
+            line-height: 1.6;
+            color: rgba(244, 235, 215, 0.84);
+        }
+
+        @media (max-width: 700px) {
+            .hud {
+                right: max(18px, env(safe-area-inset-right));
+                top: auto;
+                bottom: max(18px, env(safe-area-inset-bottom));
+            }
+
+            .fullscreen-btn {
+                padding: 0.7rem 0.95rem;
+            }
         }
     </style>
-    <title></title>
 </head>
-
 <body>
+    <div class="table-shell">
+        <canvas id="D"></canvas>
+    </div>
+    <section class="hud" aria-label="Game controls">
+        <p class="hud-title">Controls</p>
+        <p class="hud-copy">Up/Down arrows aim. Space or tap shoots.</p>
+    </section>
+    <button id="full" class="fullscreen-btn" type="button">Fullscreen</button>
+    <section id="orientationPrompt" class="overlay" aria-live="polite">
+        <div class="overlay-card">
+            <h1>Hold your phone in portrait mode.</h1>
+            <p>The table is tuned for a tall screen on mobile. Rotate your phone upright to keep the controls and playfield comfortable.</p>
+        </div>
+    </section>
+    <script src="./pool.js"></script>
 </body>
-<canvas id="D"></canvas>
-<button id="full"></button>
-<script src=".\pool.js"></script>
-
 </html>

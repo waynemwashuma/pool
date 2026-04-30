@@ -1,6 +1,6 @@
 let c = document.getElementById('D');
-c.width = 600;
-c.height = 400;
+let orientationPrompt = document.getElementById('orientationPrompt');
+let tablePadding = 20;
 let mouse = {
     x: null,
     y: null
@@ -19,6 +19,38 @@ addEventListener('dragenter', () => {
         }
     }
 })
+
+function updateHoles() {
+    holes = [
+        new Hole(0, 0),
+        new Hole(c.width / 2, 0),
+        new Hole(c.width, 0),
+        new Hole(0, c.height / 2),
+        new Hole(0, c.height),
+        new Hole(c.width, c.height),
+        new Hole(c.width, c.height / 2),
+        new Hole(c.width / 2, c.height)
+    ];
+}
+
+function resizeTable() {
+    c.width = Math.max(window.innerWidth - tablePadding, 320);
+    c.height = Math.max(window.innerHeight - tablePadding, 420);
+    updateHoles();
+    if (balls && balls.length) {
+        balls[0].x = Math.min(balls[0].x, c.width * 0.35);
+        balls[0].y = Math.min(Math.max(balls[0].y, ballradius * 2), c.height - ballradius * 2);
+    }
+}
+
+function updateOrientationPrompt() {
+    if (!orientationPrompt) {
+        return;
+    }
+    let mobileViewport = window.matchMedia('(max-width: 900px) and (pointer: coarse)').matches;
+    let isLandscape = window.innerWidth > window.innerHeight;
+    orientationPrompt.classList.toggle('active', mobileViewport && isLandscape);
+}
 
 function friction(obj) {
     let co_e = 0.02;
@@ -237,25 +269,14 @@ function shootCueBall() {
         }
     })
 }
-let balls;
-let holes = [
-    new Hole(0, 0),
-    new Hole(c.width / 2, 0),
-    new Hole(c.width, 0),
-    new Hole(0, c.height / 2),
-    new Hole(0, c.height),
-    new Hole(c.width, c.height),
-    new Hole(c.width, c.height / 2),
-    new Hole(c.width / 2, c.height)
-];
 
-(function (n) {
+function rackBalls() {
     balls = [];
-    let r = ballradius,
-        rowOffset = Math.sqrt(3) * r,
-        rackOrigin = [420, 200],
-        rows = 5;
-    balls.push(new ball(100, 200, 'cueball', 'beige'))
+    let r = ballradius;
+    let rowOffset = Math.sqrt(3) * r;
+    let rackOrigin = [c.width * 0.62, c.height / 2];
+    let rows = 5;
+    balls.push(new ball(c.width * 0.2, c.height / 2, 'cueball', 'beige'))
     for (let row = 0; row < rows; row++) {
         let x = rackOrigin[0] + row * rowOffset;
         let startY = rackOrigin[1] - row * r;
@@ -265,6 +286,15 @@ let holes = [
             balls.push(a);
         }
     }
+}
+
+let balls;
+let holes = [];
+
+(function (n) {
+    resizeTable();
+    rackBalls();
+    updateOrientationPrompt();
 })(2);
 function draw() {
     holes.forEach(hole => {
@@ -304,21 +334,23 @@ let stick = new Stick(balls[0].x, balls[1].y);
             hole.collider(bal, balls)
         });
     })
-    ct.clearRect(0, 0, innerWidth, innerHeight);
+    ct.clearRect(0, 0, c.width, c.height);
     draw();
     window.requestAnimationFrame(loop);
 })();
 (function () {
     let e = document.querySelector("button");
-    e.innerHTML = "fullscreen" || undefined;
-    let onfullscreen = false;
+    e.innerHTML = "Fullscreen" || undefined;
     e.addEventListener("click", async () => {
-        if (!c.requestFullscreen()) {
-            throw new Error('fullscreen failed');
-            alert('fullscreen error');
-            return
+        if (!document.fullscreenElement) {
+            try {
+                await document.documentElement.requestFullscreen();
+            } catch (error) {
+                console.error('fullscreen failed', error);
+            }
+            return;
         }
-        onfullscreen = onfullscreen ? false : true;
+        document.exitFullscreen();
     })
     addEventListener('keydown', e => {
         switch (e.key) {
@@ -337,24 +369,31 @@ let stick = new Stick(balls[0].x, balls[1].y);
         }
     })
 })();
-let initialBalls = 9;
+addEventListener('resize', () => {
+    resizeTable();
+    updateOrientationPrompt();
+});
+
+addEventListener('orientationchange', () => {
+    resizeTable();
+    updateOrientationPrompt();
+});
+
+let initialBalls = 15;
 setInterval(()=>{
     if (balls.length == 1) {
-            let b;
-            for (let i = 0; i <initialBalls ; i++) {
-                let x = randomIntFromRange(20, innerHeight);
-                let y = randomIntFromRange(20, innerWidth);
-                if (i) {
-                    for (let j = 0; j < balls.length; j++) {
-                        let e = balls[j];
-                        y = randomIntFromRange(20, c.width);
-                        x = randomIntFromRange(20, c.height);
-                        if (getDist(e.x, e.y, x, y) <= e.r * 2) {
-                            j = -1;
-                        }
-                    }
-                }
-                balls.push(new ball(x, y))
+            balls = [balls[0]];
+            balls[0].x = c.width * 0.2;
+            balls[0].y = c.height / 2;
+            balls[0].vel.x = 0;
+            balls[0].vel.y = 0;
+            for (let i = 0; i < initialBalls; i++) {
+                let row = Math.floor((Math.sqrt(8 * i + 1) - 1) / 2);
+                let rowStart = row * (row + 1) / 2;
+                let col = i - rowStart;
+                let x = c.width * 0.62 + row * Math.sqrt(3) * ballradius;
+                let y = c.height / 2 - row * ballradius + col * 2 * ballradius;
+                balls.push(new ball(x, y, 'other'))
             }
     }
 },1000)
