@@ -196,7 +196,7 @@ function updatePowerBar() {
 }
 
 let ballradius = 15;
-function ball(x, y, name, color = 'red') {
+function Ball(x, y, name, color = 'red') {
     this.strokecolor = 'green';
     this.x = x;
     this.name = name;
@@ -212,11 +212,67 @@ function ball(x, y, name, color = 'red') {
     }
     this.r = ballradius;
     this.draw = function (n) {
+        let shadowOffsetX = this.r * 0.32;
+        let shadowOffsetY = this.r * 0.45;
+        let bodyGradient = n.createRadialGradient(
+            this.x - this.r * 0.45,
+            this.y - this.r * 0.55,
+            this.r * 0.18,
+            this.x,
+            this.y,
+            this.r
+        );
+        let highlightGradient = n.createRadialGradient(
+            this.x - this.r * 0.4,
+            this.y - this.r * 0.45,
+            0,
+            this.x - this.r * 0.4,
+            this.y - this.r * 0.45,
+            this.r * 0.42
+        );
+
+        n.save();
         n.beginPath();
-        n.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-        n.fillStyle = this.color;
+        n.ellipse(
+            this.x + shadowOffsetX,
+            this.y + shadowOffsetY,
+            this.r * 0.92,
+            this.r * 0.52,
+            -0.18,
+            0,
+            Math.PI * 2
+        );
+        n.fillStyle = 'rgba(0, 0, 0, 0.22)';
         n.fill();
         n.closePath();
+
+        bodyGradient.addColorStop(0, '#ffffff');
+        bodyGradient.addColorStop(0.16, this.color);
+        bodyGradient.addColorStop(0.72, this.color);
+        bodyGradient.addColorStop(1, 'rgba(0, 0, 0, 0.78)');
+
+        n.beginPath();
+        n.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+        n.fillStyle = bodyGradient;
+        n.fill();
+        n.closePath();
+
+        n.beginPath();
+        n.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+        n.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+        n.lineWidth = 1.1;
+        n.stroke();
+        n.closePath();
+
+        highlightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+        highlightGradient.addColorStop(0.45, 'rgba(255, 255, 255, 0.32)');
+        highlightGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        n.beginPath();
+        n.arc(this.x - this.r * 0.36, this.y - this.r * 0.38, this.r * 0.42, 0, Math.PI * 2);
+        n.fillStyle = highlightGradient;
+        n.fill();
+        n.closePath();
+        n.restore();
     }
     this.move = function () {
         this.x += this.vel.x;
@@ -330,13 +386,13 @@ function rackBalls() {
     let rowOffset = Math.sqrt(3) * r;
     let rackOrigin = [c.width * 0.62, c.height / 2];
     let rows = 5;
-    balls.push(new ball(c.width * 0.2, c.height / 2, 'cueball', 'beige'))
+    balls.push(new Ball(c.width * 0.2, c.height / 2, 'cueball', 'beige'))
     for (let row = 0; row < rows; row++) {
         let x = rackOrigin[0] + row * rowOffset;
         let startY = rackOrigin[1] - row * r;
         for (let col = 0; col <= row; col++) {
             let y = startY + col * 2 * r;
-            let a = new ball(x, y, 'other');
+            let a = new Ball(x, y, 'other');
             balls.push(a);
         }
     }
@@ -455,7 +511,7 @@ setInterval(() => {
             let col = i - rowStart;
             let x = c.width * 0.62 + row * Math.sqrt(3) * ballradius;
             let y = c.height / 2 - row * ballradius + col * 2 * ballradius;
-            balls.push(new ball(x, y, 'other'))
+            balls.push(new Ball(x, y, 'other'))
         }
     }
 }, 1000)
