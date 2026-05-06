@@ -279,15 +279,28 @@ function Ball(x, y, name, color = 'red') {
         this.y += this.vel.y;
     }
     this.collider = function () {
-        if (this.x - this.r <= 0 ||
-            this.x + this.r >= c.width
-        ) {
-            this.vel.x = -this.vel.x;
-
+        if (this.x - this.r < 0) {
+            this.x = this.r;
+            if (this.vel.x < 0) {
+                this.vel.x = -this.vel.x;
+            }
+        } else if (this.x + this.r > c.width) {
+            this.x = c.width - this.r;
+            if (this.vel.x > 0) {
+                this.vel.x = -this.vel.x;
+            }
         }
-        if (this.y - this.r <= 0 ||
-            this.y + this.r >= c.height) {
-            this.vel.y = -this.vel.y;
+
+        if (this.y - this.r < 0) {
+            this.y = this.r;
+            if (this.vel.y < 0) {
+                this.vel.y = -this.vel.y;
+            }
+        } else if (this.y + this.r > c.height) {
+            this.y = c.height - this.r;
+            if (this.vel.y > 0) {
+                this.vel.y = -this.vel.y;
+            }
         }
     }
 };
